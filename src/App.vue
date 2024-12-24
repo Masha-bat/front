@@ -4,17 +4,37 @@
       <site-header />
       <site-menu />
       <div class="content">
+        <div class="filters">
+          <!-- Фильтр по категории -->
+          <select v-model="selectedCategory" @change="filterDishes">
+            <option value="">Все категории</option>
+            <option value="супы">Супы</option>
+            <option value="салаты">Салаты</option>
+            <option value="пицца">Пицца</option>
+          </select>
+
+          <!-- Поиск по названию и описанию -->
+          <input
+            type="text"
+            v-model="searchQuery"
+            @input="filterDishes"
+            placeholder="Поиск по названию и описанию"
+          />
+        </div>
+
         <div class="view-toggle">
           <button @click="toggleView">
             {{ isTableView ? "Показать карточки" : "Показать таблицу" }}
           </button>
         </div>
+
         <div class="sort-button">
           <!-- Кнопка сортировки -->
           <button @click="sortByPrice">
-            Сортировать по цене: {{ isPriceAscending ? 'по убыванию' : 'по возрастанию' }}
+            Сортировать по цене: {{ isPriceAscending ? 'по возрастанию' : 'по убыванию' }}
           </button>
         </div>
+
         <div v-if="isTableView">
           <!-- Табличное представление -->
           <table>
@@ -26,7 +46,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="dish in sortedDishes" :key="dish.id">
+              <tr v-for="dish in filteredDishes" :key="dish.id">
                 <td>{{ dish.name }}</td>
                 <td>{{ dish.price }} ₽</td>
                 <td>{{ dish.description }}</td>
@@ -37,7 +57,7 @@
         <div v-else>
           <!-- Карточное представление -->
           <div class="card-container">
-            <div v-for="dish in sortedDishes" :key="dish.id" class="card">
+            <div v-for="dish in filteredDishes" :key="dish.id" class="card">
               <h3>{{ dish.name }}</h3>
               <p><strong>Цена:</strong> {{ dish.price }} ₽</p>
               <p>{{ dish.description }}</p>
@@ -97,20 +117,32 @@ export default {
       password: '',
       isTableView: true, // Отображение: таблица или карточки
       isPriceAscending: true, // Направление сортировки по цене
+      searchQuery: '', // Строка поиска
+      selectedCategory: '', // Выбранная категория
       dishes: [
-        { id: 1, name: "Борщ", price: 250, description: "Традиционный суп с мясом и свёклой." },
-        { id: 2, name: "Цезарь", price: 300, description: "Салат с курицей, сыром и сухариками." },
-        { id: 3, name: "Пицца Маргарита", price: 450, description: "Пицца с томатным соусом и сыром." },
+        { id: 1, name: "Борщ", price: 250, description: "Традиционный суп с мясом и свёклой.", category: "супы" },
+        { id: 2, name: "Цезарь", price: 300, description: "Салат с курицей, сыром и сухариками.", category: "салаты" },
+        { id: 3, name: "Пицца Маргарита", price: 450, description: "Пицца с томатным соусом и сыром.", category: "пицца" },
+        { id: 4, name: "Суп-пюре из грибов", price: 200, description: "Нежный суп с грибами.", category: "супы" },
+        { id: 5, name: "Пепперони", price: 500, description: "Пицца с колбасой пепперони.", category: "пицца" },
+        { id: 6, name: "Оливье", price: 350, description: "Салат с картошкой, яйцом и колбасой.", category: "салаты" },
       ],
       sortKey: '', // Поле для сортировки
       sortDirection: 1, // Направление сортировки
     };
   },
   computed: {
-    sortedDishes() {
-      if (!this.sortKey && this.isPriceAscending === true) return this.dishes;
-      
-      return [...this.dishes]
+    filteredDishes() {
+      return this.dishes
+        .filter((dish) => {
+          const matchesCategory = this.selectedCategory
+            ? dish.category === this.selectedCategory
+            : true;
+          const matchesSearchQuery =
+            dish.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+            dish.description.toLowerCase().includes(this.searchQuery.toLowerCase());
+          return matchesCategory && matchesSearchQuery;
+        })
         .sort((a, b) => {
           if (this.sortKey) {
             const aValue = a[this.sortKey];
@@ -166,6 +198,9 @@ export default {
         this.sortDirection = 1; // Сортировка по возрастанию
       }
     },
+    filterDishes() {
+      // Фильтрация блюд уже происходит в вычисляемом свойстве filteredDishes
+    },
   },
 };
 </script>
@@ -187,6 +222,19 @@ export default {
 .content {
   flex: 1;
   padding: 20px;
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.filters input,
+.filters select {
+  padding: 8px;
+  font-size: 16px;
 }
 
 .view-toggle {
