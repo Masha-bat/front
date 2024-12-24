@@ -3,7 +3,7 @@
     <ul class="menu-list">
       <li><router-link to="/">Главная</router-link></li>
       <li><router-link to="/about">О нас</router-link></li>
-      <li><router-link to="/contact">Контакты</router-link></li>
+      <li><router-link to="/contact">Заказать</router-link></li>
     </ul>
   </nav>
 </template>
